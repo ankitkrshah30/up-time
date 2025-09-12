@@ -31,6 +31,6 @@ public class UserSession {
     private boolean active;
     @CreatedDate
     private LocalDateTime createdAt;
-    private Map<String,Object> additionalData=new HashMap<>();
+    private Map<String,Object> metaData=new HashMap<>();
 
 }

@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.bahikhata</groupId>
-	<artifactId>up-time</artifactId>
+	<artifactId>up_time</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>up-time</name>
 	<description>up-time-tracker</description>
