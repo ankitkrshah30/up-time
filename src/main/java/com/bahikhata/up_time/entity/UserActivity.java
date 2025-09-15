@@ -31,4 +31,12 @@ public class UserActivity {
 
     @CreatedDate
     private LocalDateTime timestamp;
+
+    public UserActivity(User user, UserSession session, String activityType, String endPoint, String method) {
+        this.user = user;
+        this.session = session;
+        this.activityType = activityType;
+        this.endPoint = endPoint;
+        this.method = method;
+    }
 }

@@ -21,13 +21,13 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class User implements UserDetails {
 
     @Id
     private String id;
 
     @Indexed(unique=true)
-    private String userName;
+    private String username;
     private String password;
 
     @Indexed(unique=true)
@@ -46,14 +46,27 @@ public class User {
     private boolean accountNonLocked=true;
     private boolean credentialsNonExpired=true;
 
-    /*@Override
+    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
-    public String getUsername() {
-        return userName;
-    }*/
+    public String getPassword() { return password; }
+
+    @Override
+    public String getUsername() { return username; }
+
+    @Override
+    public boolean isAccountNonExpired() { return accountNonExpired; }
+
+    @Override
+    public boolean isAccountNonLocked() { return accountNonLocked; }
+
+    @Override
+    public boolean isCredentialsNonExpired() { return credentialsNonExpired; }
+
+    @Override
+    public boolean isEnabled() { return enabled; }
 
 }

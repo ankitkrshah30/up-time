@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Up-Time API Console</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --muted: #9ca3af;
+            --text: #e5e7eb;
+            --primary: #22c55e;
+            --accent: #38bdf8;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border: #1f2937;
+            --chip: #0b1220;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
+            background: linear-gradient(120deg, #0b1023, #0f172a 40%, #0b1220 100%);
+            color: var(--text);
+        }
+        header {
+            padding: 24px 20px; border-bottom: 1px solid var(--border);
+            background: rgba(17,24,39,0.6); backdrop-filter: blur(6px);
+            position: sticky; top: 0; z-index: 10;
+        }
+        header h1 { margin: 0 0 6px 0; font-size: 20px; letter-spacing: .5px; }
+        header .sub { color: var(--muted); font-size: 12px; }
+        .container { max-width: 1100px; margin: 18px auto; padding: 0 16px 32px; }
+
+        .grid {
+            display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px;
+        }
+        .card {
+            grid-column: span 12;
+            background: linear-gradient(180deg, rgba(18,24,38,.9), rgba(14,20,34,.9));
+            border: 1px solid var(--border); border-radius: 12px;
+            padding: 16px;
+        }
+        @media (min-width: 900px) {
+            .span-4 { grid-column: span 4; }
+            .span-8 { grid-column: span 8; }
+            .span-6 { grid-column: span 6; }
+        }
+        .card h2 { margin: 0 0 8px 0; font-size: 16px; }
+        .desc { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+        .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+        input, select {
+            background: #0a0f1f; border: 1px solid var(--border); color: var(--text);
+            border-radius: 8px; padding: 10px 12px; width: 100%;
+            outline: none;
+        }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(56,189,248,.2); }
+        button {
+            background: linear-gradient(180deg, #22c55e, #16a34a);
+            border: none; color: #07110a; font-weight: 700;
+            padding: 10px 14px; border-radius: 10px; cursor: pointer;
+        }
+        button.secondary {
+            background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+            color: #05131c;
+        }
+        button.warn {
+            background: linear-gradient(180deg, #f59e0b, #d97706);
+            color: #140a03;
+        }
+        button.danger {
+            background: linear-gradient(180deg, #ef4444, #dc2626);
+            color: #1a0909;
+        }
+        .inline { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .pill {
+            background: var(--chip); border: 1px solid var(--border);
+            color: var(--muted); font-size: 12px; padding: 6px 10px; border-radius: 999px;
+        }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+        .code {
+            background: #020617; border: 1px solid var(--border);
+            border-radius: 10px; padding: 12px; overflow: auto; max-height: 360px;
+            font-size: 12px;
+        }
+        .small { font-size: 12px; }
+        .sep { height: 8px; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Up-Time API Console</h1>
+    <div class="sub">Test auth and dashboard endpoints with a smooth, single page</div>
+</header>
+
+<div class="container">
+    <div class="grid">
+        <!-- Config -->
+        <div class="card span-12">
+            <h2>Configuration</h2>
+            <div class="desc">Base URL and token handling for requests</div>
+            <div class="row">
+                <div style="flex: 1 1 340px;">
+                    <label for="baseUrl">Base URL</label>
+                    <input id="baseUrl" value="http://localhost:8080" />
+                </div>
+                <div class="inline">
+                    <span class="pill">Auth header added automatically when access token is set</span>
+                    <button class="secondary" id="clearStateBtn">Clear tokens & output</button>
+                </div>
+            </div>
+            <div class="row">
+                <div style="flex: 1 1 320px;">
+                    <label>Access Token</label>
+                    <input id="accessToken" placeholder="Will be set after login" />
+                </div>
+                <div style="flex: 1 1 320px;">
+                    <label>Refresh Token</label>
+                    <input id="refreshToken" placeholder="Will be set after login" />
+                </div>
+            </div>
+            <div class="small">Stored in localStorage for convenience.</div>
+        </div>
+
+        <!-- Signup -->
+        <div class="card span-6">
+            <h2>Signup</h2>
+            <div class="desc">POST /api/auth/signup</div>
+            <div class="row">
+                <div style="flex:1 1 180px;">
+                    <label>Username</label><input id="su_username" />
+                </div>
+                <div style="flex:1 1 220px;">
+                    <label>Email</label><input id="su_email" />
+                </div>
+            </div>
+            <div class="row">
+                <div style="flex:1 1 180px;">
+                    <label>Password</label><input id="su_password" type="password" />
+                </div>
+                <div style="flex:1 1 180px;">
+                    <label>First Name</label><input id="su_first" />
+                </div>
+                <div style="flex:1 1 180px;">
+                    <label>Last Name</label><input id="su_last" />
+                </div>
+            </div>
+            <div class="inline">
+                <button id="signupBtn">Sign Up</button>
+            </div>
+        </div>
+
+        <!-- Login -->
+        <div class="card span-6">
+            <h2>Login</h2>
+            <div class="desc">POST /api/auth/login</div>
+            <div class="row">
+                <div style="flex:1 1 240px;">
+                    <label>Username</label><input id="li_username" />
+                </div>
+                <div style="flex:1 1 240px;">
+                    <label>Password</label><input id="li_password" type="password" />
+                </div>
+            </div>
+            <div class="inline">
+                <button id="loginBtn">Login</button>
+                <span class="pill">On success, tokens will appear above</span>
+            </div>
+        </div>
+
+        <!-- Protected Calls -->
+        <div class="card span-12">
+            <h2>Protected Endpoints</h2>
+            <div class="desc">Require Authorization: Bearer &lt;accessToken&gt;</div>
+            <div class="row">
+                <div class="inline">
+                    <button class="secondary" id="meBtn">GET /api/user/me</button>
+                    <button class="secondary" id="uptimeBtn">GET /dashboard/uptime</button>
+                    <button class="secondary" id="recentBtn">GET /dashboard/sessions/recent</button>
+                </div>
+            </div>
+            <div class="row">
+                <div style="flex: 1 1 260px;">
+                    <label>Other user's username (view their uptime)</label>
+                    <input id="otherUsername" placeholder="e.g. alice" />
+                </div>
+                <div class="inline">
+                    <button class="secondary" id="otherUptimeBtn">GET /dashboard/uptime/{username}</button>
+                </div>
+            </div>
+            <div class="inline">
+                <button class="warn" id="logoutBtn">POST /api/auth/logout</button>
+                <span class="pill small">Logout ends the active session in DB. Discard tokens client-side.</span>
+            </div>
+        </div>
+
+        <!-- Output -->
+        <div class="card span-12">
+            <h2>Output</h2>
+            <div class="desc">Responses (status, time, and JSON)</div>
+            <div id="output" class="code mono"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Simple state
+    const els = {
+        baseUrl: document.getElementById('baseUrl'),
+        accessToken: document.getElementById('accessToken'),
+        refreshToken: document.getElementById('refreshToken'),
+        out: document.getElementById('output'),
+
+        // signup
+        su_username: document.getElementById('su_username'),
+        su_email: document.getElementById('su_email'),
+        su_password: document.getElementById('su_password'),
+        su_first: document.getElementById('su_first'),
+        su_last: document.getElementById('su_last'),
+
+        // login
+        li_username: document.getElementById('li_username'),
+        li_password: document.getElementById('li_password'),
+
+        // buttons
+        signupBtn: document.getElementById('signupBtn'),
+        loginBtn: document.getElementById('loginBtn'),
+        meBtn: document.getElementById('meBtn'),
+        uptimeBtn: document.getElementById('uptimeBtn'),
+        recentBtn: document.getElementById('recentBtn'),
+        logoutBtn: document.getElementById('logoutBtn'),
+        clearStateBtn: document.getElementById('clearStateBtn'),
+        otherUsername: document.getElementById('otherUsername'),
+        otherUptimeBtn: document.getElementById('otherUptimeBtn')
+    };
+
+    // Load persisted values
+    (function init() {
+        const s = JSON.parse(localStorage.getItem('apiConsole') || '{}');
+        if (s.baseUrl) els.baseUrl.value = s.baseUrl;
+        if (s.accessToken) els.accessToken.value = s.accessToken;
+        if (s.refreshToken) els.refreshToken.value = s.refreshToken;
+        info('Ready. Set base URL and test endpoints.');
+        persist();
+    })();
+
+    function persist() {
+        localStorage.setItem('apiConsole', JSON.stringify({
+            baseUrl: els.baseUrl.value.trim(),
+            accessToken: els.accessToken.value.trim(),
+            refreshToken: els.refreshToken.value.trim()
+        }));
+    }
+
+    function setTokens(access, refresh) {
+        if (access) els.accessToken.value = access;
+        if (refresh) els.refreshToken.value = refresh;
+        persist();
+    }
+
+    function log(obj, meta = {}) {
+        const time = new Date().toLocaleTimeString();
+        const hdr = [
+            `⏱ ${time}`,
+            meta.method ? `${meta.method} ${meta.path || ''}`.trim() : '',
+            meta.status ? `status=${meta.status}` : ''
+        ].filter(Boolean).join('  |  ');
+        const body = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+        els.out.innerText = hdr + '\n' + body + '\n\n' + els.out.innerText;
+    }
+
+    function info(msg) { log(msg); }
+
+    async function apiFetch(path, { method = 'GET', body, skipAuth = false } = {}) {
+        const url = els.baseUrl.value.replace(/\/$/, '') + path;
+        const headers = { 'Accept': 'application/json' };
+        if (body !== undefined) headers['Content-Type'] = 'application/json';
+        const token = els.accessToken.value.trim();
+        if (!skipAuth && token) headers['Authorization'] = 'Bearer ' + token;
+
+        const start = performance.now();
+        let res, txt;
+        try {
+            res = await fetch(url, {
+                method,
+                headers,
+                body: body !== undefined ? JSON.stringify(body) : undefined
+            });
+            txt = await res.text();
+        } catch (e) {
+            log({ error: e.message }, { method, path, status: 'NETWORK' });
+            throw e;
+        }
+        const ms = Math.round(performance.now() - start);
+
+        let data;
+        try { data = txt ? JSON.parse(txt) : null; }
+        catch { data = { raw: txt }; }
+
+        log(data ?? {}, { method, path, status: res.status + ` (${ms}ms)` });
+
+        if (!res.ok) {
+            const err = new Error('HTTP ' + res.status);
+            err.response = res;
+            err.data = data;
+            throw err;
+        }
+        return data;
+    }
+
+    // Handlers
+    els.signupBtn.addEventListener('click', async () => {
+        persist();
+        const body = {
+            username: els.su_username.value.trim(),
+            email: els.su_email.value.trim(),
+            password: els.su_password.value,
+            firstName: els.su_first.value.trim(),
+            lastName: els.su_last.value.trim()
+        };
+        if (!body.username || !body.email || !body.password || !body.firstName || !body.lastName) {
+            return info('Please fill all signup fields.');
+        }
+        try {
+            await apiFetch('/api/auth/signup', { method: 'POST', body, skipAuth: true });
+            info('Signup successful. Now login.');
+        } catch (e) {
+            // Errors already logged
+        }
+    });
+
+    els.loginBtn.addEventListener('click', async () => {
+        persist();
+        const body = {
+            username: els.li_username.value.trim(),
+            password: els.li_password.value
+        };
+        if (!body.username || !body.password) return info('Enter username and password to login.');
+        try {
+            const res = await apiFetch('/api/auth/login', { method: 'POST', body, skipAuth: true });
+            setTokens(res.accessToken, res.refreshToken);
+            info('Login successful. Tokens set. You can now call protected endpoints.');
+        } catch (e) {
+            // Errors already logged
+        }
+    });
+
+    els.meBtn.addEventListener('click', async () => {
+        persist();
+        try { await apiFetch('/api/user/me'); } catch {}
+    });
+
+    els.uptimeBtn.addEventListener('click', async () => {
+        persist();
+        try { await apiFetch('/dashboard/uptime'); } catch {}
+    });
+
+    els.recentBtn.addEventListener('click', async () => {
+      persist();
+      try { await apiFetch('/dashboard/sessions/recent'); } catch {}
+    });
+
+    els.otherUptimeBtn.addEventListener('click', async () => {
+      persist();
+      const u = (els.otherUsername.value || '').trim();
+      if (!u) return info('Enter a username to view uptime.');
+      try { await apiFetch(`/dashboard/uptime/${encodeURIComponent(u)}`); } catch {}
+    });
+
+    els.logoutBtn.addEventListener('click', async () => {
+      persist();
+      try {
+        await apiFetch('/api/auth/logout', { method: 'POST' });
+        info('Logged out. Consider clearing tokens (they are not server-invalidated).');
+      } catch {}
+    });
+
+    els.clearStateBtn.addEventListener('click', () => {
+        els.accessToken.value = '';
+        els.refreshToken.value = '';
+        els.out.innerText = '';
+        persist();
+        info('Cleared tokens and output.');
+    });
+
+    // Sync manual edits of tokens/base URL to storage
+    [els.baseUrl, els.accessToken, els.refreshToken].forEach(el => {
+        el.addEventListener('change', persist);
+        el.addEventListener('keyup', persist);
+    });
+</script>
+</body>
+</html>
